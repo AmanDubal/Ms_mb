@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Shareable Birthday Card</title>
+    <style>
+        /* NEW COLOR PALETTE & ANIMATED BACKGROUND */
+        :root{
+            --bg-start:#f8c5b3; /* Soft peach/pink */
+            --bg-end:#a76b91;   /* Dusty rose/purple */
+            --card-bg:rgba(255, 255, 255, 0.1); /* Slightly transparent white card */
+            --accent:#ff7043; /* Warm coral accent */
+            --muted:#f3e9f0;  /* Light muted text */
+            --message-color:#fff; /* White message for contrast */
+        }
+        *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+        
+        /* UPDATED BODY STYLES FOR LOVE DOVE BACKGROUND */
+        body{
+            margin:0;
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color:#fff; /* White text on new darker background */
+            overflow-x: hidden; /* Prevent horizontal scroll from animation */
+            position: relative;
+        }
+        
+        /* CARD STYLES */
+        .wrap{width:100%;max-width:920px;padding:28px}
+        .card{
+            background:var(--card-bg);
+            backdrop-filter: blur(10px); /* Glassmorphism effect */
+            border-radius:14px;
+            padding:22px;
+            box-shadow:0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .creator{display:flex;gap:18px;align-items:flex-start}
+        .form{flex:1}
+        label{display:block;font-size:13px;color:var(--muted);margin-top:10px}
+        input[type=text],textarea{
+            width:100%;padding:10px;border-radius:8px;
+            border:1px solid rgba(255,255,255,0.3);
+            background:rgba(255, 255, 255, 0.1); /* Lighter input background */
+            color:inherit;outline:none;
+        }
+        textarea{min-height:100px;resize:vertical}
+        button{
+            margin-top:12px;padding:10px 14px;border-radius:10px;border:0;
+            background:var(--accent);color:#fff;font-weight:600;cursor:pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #ff5e33; /* Darker coral on hover */
+        }
+        
+        /* PREVIEW STYLES */
+        .preview{
+            width:420px;min-height:500px;
+            background:rgba(0, 0, 0, 0.3); /* Darker preview background */
+            border-radius:12px;padding:18px;
+            display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+            position:relative
+        }
+        .blow-title{font-weight:800;letter-spacing:4px;margin-top:6px;color:var(--message-color)}
+        
+        /* CAKE & CANDLE STYLES */
+        .cake-wrap{margin-top:18px;display:flex;flex-direction:column;align-items:center}
+        .cake{width:260px;max-width:100%;height:160px;position:relative}
+        .cake .tier{position:absolute;left:50%;transform:translateX(-50%);background:#fef3c7;border-radius:12px}
+        .cake .tier.t1{width:240px;height:80px;bottom:12px}
+        .cake .tier.t2{width:180px;height:58px;bottom:78px}
+        .icing{position:absolute;left:50%;transform:translateX(-50%);top:54px;width:260px;height:40px;border-radius:18px;background:linear-gradient(90deg,#ff9aa2,#ffd6a5)}
+        .candles{position:absolute;left:50%;transform:translateX(-50%);top:6px;display:flex;gap:6px}
+        .candle{width:8px;height:26px;background:#eab308;border-radius:3px;position:relative;display:flex;align-items:flex-start;justify-content:center}
+        .wick{width:3px;height:10px;background:#1f2937;border-radius:2px;margin-top:2px}
+        .flame{
+            width:10px;height:12px;border-radius:50% 50% 45% 45%;
+            background:linear-gradient(180deg,#fff8e1,#ff9800);
+            box-shadow:0 0 14px rgba(255,140,80,0.85);
+            transform-origin:50% 70%;animation:flicker 0.25s infinite
+        }
+        @keyframes flicker{0%{transform:scale(1)}50%{transform:scale(0.92)}100%{transform:scale(1)}}
+        .cake-base{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:240px;height:18px;background:rgba(0,0,0,0.06);border-radius:8px}
+        
+        .btn-row{display:flex;gap:8px;margin-top:14px}
+        .note{margin-top:12px;font-size:13px;color:var(--muted);text-align:center}
+        
+        /* REVEAL MESSAGE STYLES */
+        .reveal{
+            position: absolute; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            font-size: 24px; 
+            font-weight: 700; 
+            color: var(--message-color); 
+            opacity: 0; 
+            transition: opacity .5s ease-in;
+            text-align: center;
+            max-width: 90%; 
+            width: 380px; 
+            word-wrap: break-word; 
+            white-space: pre-wrap; 
+            padding: 0 10px;
+        }
+        .reveal.show{opacity:1;} 
+        
+        .link-box{background:rgba(255,255,255,0.1);padding:8px;border-radius:8px;margin-top:10px;word-break:break-all}
+        footer{margin-top:18px;font-size:12px;color:var(--muted)}
+
+        /* --- LOVE DOVE (HEART) ANIMATION STYLES --- */
+        .heart {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #ff4d4d; 
+            transform: rotate(-45deg);
+            z-index: -1; 
+            pointer-events: none;
+            opacity: 0;
+            animation: floatUp 15s infinite linear;
+        }
+        .heart::before, .heart::after {
+            content: "";
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+        }
+        .heart::before { top: -7.5px; left: 0; }
+        .heart::after { top: 0; left: 7.5px; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(-45deg); opacity: 0.8; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-50vh) rotate(-45deg); opacity: 0; }
+        }
+
+        /* RESPONSIVE CSS */
+        @media (max-width:880px){
+            .wrap{padding:15px}
+            .creator{flex-direction:column}
+            .preview{width:100%;order:-1;margin-bottom:12px;min-height:350px;}
+            .cake{transform:scale(0.85); margin-top:20px}
+            .reveal{font-size:20px; top: 10px; width: 90%;}
+        }
+    </style>
+</head>
+<body>
+    <div class="heart" style="left: 10%; animation-delay: 0s; background-color: #ff99ff;"></div>
+    <div class="heart" style="left: 25%; animation-delay: 3s; background-color: #ff4d4d;"></div>
+    <div class="heart" style="left: 40%; animation-delay: 6s; background-color: #ffcc66;"></div>
+    <div class="heart" style="left: 60%; animation-delay: 9s; background-color: #ff4d4d;"></div>
+    <div class="heart" style="left: 75%; animation-delay: 12s; background-color: #ff99ff;"></div>
+    <div class="heart" style="left: 90%; animation-delay: 15s; background-color: #ffcc66;"></div>
+    
+    <div class="wrap">
+        <div class="card">
+            <div class="creator">
+                <div class="form">
+                    <label>Recipient name</label>
+                    <input id="nameInput" type="text" placeholder="e.g. Aisha" />
+
+                    <label>Short Message (The surprise message that appears)</label>
+                    <textarea id="msgInput" placeholder="Write your surprise message here...
+Example: Happy Birthday! I love you so much ❤️"></textarea>
+
+                    <label class="small">Optional: Short custom slug (letters/numbers) — will be appended to URL as `card=`</label>
+                    <input id="slugInput" type="text" placeholder="e.g. aisha-24" />
+
+                    <div class="btn-row">
+                        <button id="genBtn">Generate Share Link</button>
+                        <button id="previewBtn" style="background:#4a6fa3;color:#e6f6ff">Preview Card</button>
+                    </div>
+
+                    <div id="linkOut" style="display:none">
+                        <label>Shareable link</label>
+                        <div class="link-box" id="linkBox"></div>
+                        <button id="copyBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.3);color:inherit;padding:8px;border-radius:8px;margin-top:8px">Copy Link</button>
+                    </div>
+
+                    <footer>How it works: generate a link and share it. Recipient opens the link and clicks the candles (or presses Space) to "blow" them, revealing your message above the cake.</footer>
+                </div>
+
+                <div class="preview" id="preview">
+                    <div class="reveal" id="revealMessage"></div> 
+
+                    <div style="text-align:center; margin-top:40px;">
+                        <div class="blow-title">B L O W</div>
+                    </div>
+
+                    <div class="cake-wrap">
+                        <div class="cake" id="cake">
+                            <div class="icing"></div>
+                            <div class="tier t1"></div>
+                            <div class="tier t2"></div>
+                            <div class="candles" id="candles"></div>
+                            <div class="cake-base"></div>
+                        </div>
+
+                        <div class="note small">Click any candle to blow them out and reveal your message.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+function $(s){return document.querySelector(s)}
+const nameInput = $('#nameInput'), msgInput = $('#msgInput'), slugInput = $('#slugInput')
+const genBtn = $('#genBtn'), previewBtn = $('#previewBtn'), linkOut = $('#linkOut'), linkBox = $('#linkBox'), copyBtn = $('#copyBtn')
+const preview = $('#preview'), revealMessage = $('#revealMessage')
+const candlesWrap = $('#candles')
+
+function getParams(){const p = new URLSearchParams(location.search);return Object.fromEntries(p.entries())}
+
+function setPreview(name,msg){
+    msg = msg || 'Happy Birthday!'; 
+    revealMessage.textContent = msg;
+    revealMessage.classList.remove('show'); 
+    setCandles(9);
+    blown = false; 
+}
+
+function makeLink(){const name = nameInput.value.trim();const msg = msgInput.value.trim();const slug = slugInput.value.trim();
+    if(!name || !msg){alert('Please add recipient name and a short message first.');return}
+    const base = location.origin + location.pathname;
+    const payload = btoa(JSON.stringify({n:name,m:msg}));
+    
+    let link = base + '?p=' + encodeURIComponent(payload);
+    if(slug) {
+        link += '&card=' + encodeURIComponent(slug); 
+    }
+    return link;
+}
+
+genBtn.addEventListener('click', ()=>{const link = makeLink(); linkBox.textContent = link; linkOut.style.display='block'; navigator.clipboard?.writeText(link).catch(()=>{});})
+copyBtn?.addEventListener('click', ()=>{navigator.clipboard?.writeText(linkBox.textContent).then(()=>alert('Copied!')).catch(()=>alert('Copy failed'))})
+previewBtn.addEventListener('click', ()=>{setPreview(nameInput.value.trim(), msgInput.value.trim());})
+
+function setCandles(n){candlesWrap.innerHTML=''; for(let i=0;i<n;i++){const c = document.createElement('div'); c.className='candle'; 
+    const wick = document.createElement('div'); wick.className='wick';
+    const flame = document.createElement('div'); flame.className='flame'; flame.dataset.idx = i;
+    c.appendChild(flame); c.appendChild(wick); candlesWrap.appendChild(c);
+    flame.addEventListener('click', ()=>blowAll());}
+}
+
+let blown=false;
+function blowAll(){
+    if(blown) return; 
+    blown=true; 
+    
+    document.querySelectorAll('.flame').forEach(f=>f.style.display='none');
+    
+    const params = getParams(); let msg = 'Happy Birthday!';
+    if(params.p){ 
+        try{ 
+            const json = atob(decodeURIComponent(params.p)); 
+            const obj = JSON.parse(json); 
+            if(obj.m) msg = obj.m; 
+        }catch(e){} 
+    } else if (msgInput.value) {
+        msg = msgInput.value;
+    }
+
+    revealMessage.textContent = msg;
+    revealMessage.classList.add('show');
+}
+
+(function init(){
+    const params = getParams(); 
+    
+    if(params.card || params.p){
+        // CARD VIEW MODE (Recipient View)
+        document.querySelector('.form').style.display = 'none'; 
+        setCandles(9); // <<< FIX: Call setCandles here to display them to the recipient
+        
+        let name = 'Recipient'; 
+        let msg = 'Happy Birthday!';
+
+        if(params.p){ 
+            try{ 
+                const json = atob(decodeURIComponent(params.p)); 
+                const obj = JSON.parse(json); 
+                if(obj.n) name = obj.n; 
+                if(obj.m) msg = obj.m; 
+            }catch(e){}
+        }
+
+        revealMessage.textContent = msg;
+        document.title = `Happy Birthday, ${name}!`;
+        
+        document.addEventListener('keydown', (ev)=>{ if(ev.code==='Space'){ blowAll(); } });
+    } else {
+        // EDITOR MODE (Creator View)
+        setCandles(9); 
+    }
+})();
+</script>
+</body>
+</html>
